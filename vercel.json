@@ -3,6 +3,14 @@
     {
       "source": "/api/(.*)",
       "destination": "/api/main.py"
+    },
+    {
+      "source": "/login.html",
+      "destination": "/api/main.py"
+    },
+    {
+      "source": "/",
+      "destination": "/api/main.py"
     }
   ]
 }

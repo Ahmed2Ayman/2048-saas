@@ -1,0 +1,955 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>الذكاء الاصطناعي - القاهر</title>
+
+    <script>
+      document.documentElement.style.display = "none"; // إخفاء الصفحة فوراً
+
+      async function checkSecurity() {
+        const token = localStorage.getItem("device_token");
+        if (!token) {
+          window.location.replace("login.html"); // طرد لصفحة الدخول
+          return;
+        }
+        try {
+          const response = await fetch("http:/api/verify", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ device_token: token }),
+          });
+
+          if (response.ok) {
+            document.documentElement.style.display = ""; // إظهار الصفحة
+          } else {
+            localStorage.removeItem("device_token");
+            window.location.replace("login.html");
+          }
+        } catch (error) {
+          alert("خطأ في الاتصال بخادم الحماية.");
+          window.location.replace("login.html");
+        }
+      }
+      checkSecurity();
+    </script>
+
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Tahoma", "Helvetica Neue", "Segoe UI", sans-serif;
+        background: linear-gradient(135deg, #1e1e24 0%, #0a0a0d 100%);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+        color: #333;
+        text-align: right;
+      }
+      .container {
+        background: white;
+        border-radius: 20px;
+        padding: 25px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+        max-width: 500px;
+        width: 100%;
+      }
+      h1 {
+        text-align: center;
+        color: #333;
+        margin-bottom: 25px;
+        font-size: 1.8em;
+        font-weight: 800;
+      }
+      .status-bar {
+        background: #f4f4f7;
+        padding: 15px 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        border-right: 5px solid #667eea;
+        min-height: 50px;
+        display: flex;
+        align-items: center;
+        transition: all 0.3s ease;
+      }
+      .status-bar .status-text {
+        color: #333;
+        font-size: 1.05em;
+        font-weight: bold;
+      }
+      .status-bar.waiting {
+        border-right-color: #f59563;
+        background: #fff3e0;
+      }
+      .status-bar.success {
+        border-right-color: #28a745;
+        background: #d4edda;
+      }
+      .status-bar.thinking {
+        border-right-color: #e53e3e;
+        background: #fed7d7;
+      }
+
+      .recommended-move {
+        background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+        margin-bottom: 20px;
+        display: none;
+        animation: slideIn 0.4s ease;
+        box-shadow: 0 10px 20px rgba(229, 62, 62, 0.3);
+      }
+      .recommended-move.show {
+        display: block;
+      }
+      .recommended-move h2 {
+        font-size: 1.2em;
+        margin-bottom: 8px;
+        font-weight: 600;
+        opacity: 0.9;
+      }
+      .recommended-move .move-direction-text {
+        font-size: 2.2em;
+        font-weight: bold;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+      }
+      .recommended-move .move-direction-arrow {
+        font-size: 2.5em;
+        line-height: 1;
+      }
+
+      .grid-container {
+        background: #bbada0;
+        border-radius: 10px;
+        padding: 10px;
+        display: flex;
+        justify-content: center;
+        width: 100%;
+        position: relative;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        width: 100%;
+        max-width: 420px;
+      }
+      .cell {
+        aspect-ratio: 1;
+        background: rgba(238, 228, 218, 0.35);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: clamp(1.5em, 5vw, 2.2em);
+        font-weight: bold;
+        color: #776e65;
+        position: relative;
+        transition: all 0.15s ease;
+      }
+      .cell input {
+        width: 100%;
+        height: 100%;
+        border: none;
+        background: #eee4da;
+        text-align: center;
+        font-size: 1em;
+        font-weight: bold;
+        color: #776e65;
+        border-radius: 8px;
+        padding: 0;
+        -moz-appearance: textfield;
+      }
+      .cell input::-webkit-outer-spin-button,
+      .cell input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+      .cell input:focus {
+        outline: 3px solid #e53e3e;
+        background: #fff;
+      }
+
+      .tile {
+        background: #eee4da;
+        transition: all 0.15s ease;
+      }
+      .cell.clickable {
+        cursor: pointer;
+        animation: pulse 1.5s infinite;
+      }
+      .cell.clickable:hover {
+        transform: scale(1.05);
+        background: rgba(229, 62, 62, 0.2);
+      }
+      .cell.selected {
+        background: #e53e3e !important;
+        color: white !important;
+        animation: none;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          box-shadow: 0 0 0 0 rgba(229, 62, 62, 0.7);
+        }
+        50% {
+          box-shadow: 0 0 0 10px rgba(229, 62, 62, 0);
+        }
+      }
+
+      .tile-1 {
+        background: #eee4da;
+        color: #776e65;
+      }
+      .tile-2 {
+        background: #ede0c8;
+        color: #776e65;
+      }
+      .tile-3 {
+        background: #f2b179;
+        color: #f9f6f2;
+      }
+      .tile-4 {
+        background: #f59563;
+        color: #f9f6f2;
+      }
+      .tile-5 {
+        background: #f67c5f;
+        color: #f9f6f2;
+      }
+      .tile-6 {
+        background: #f65e3b;
+        color: #f9f6f2;
+      }
+      .tile-7 {
+        background: #edcf72;
+        color: #f9f6f2;
+      }
+      .tile-8 {
+        background: #edcc61;
+        color: #f9f6f2;
+      }
+      .tile-9 {
+        background: #edc850;
+        color: #f9f6f2;
+      }
+      .tile-10 {
+        background: #edc53f;
+        color: #f9f6f2;
+        font-size: 0.9em;
+      }
+      .tile-11 {
+        background: #edc22e;
+        color: #f9f6f2;
+        font-size: 0.9em;
+      }
+      .tile-12 {
+        background: #3c3a32;
+        color: #f9f6f2;
+        font-size: 0.9em;
+      }
+      .tile-13 {
+        background: #667eea;
+        color: #f9f6f2;
+        font-size: 0.9em;
+      }
+      .tile-14 {
+        background: #764ba2;
+        color: #f9f6f2;
+        font-size: 0.9em;
+      }
+      .tile-15,
+      .tile-16,
+      .tile-17,
+      .tile-18,
+      .tile-19,
+      .tile-20 {
+        background: #000000;
+        color: #f9f6f2;
+        font-size: 0.8em;
+        border: 2px solid #e53e3e;
+        box-shadow: 0 0 10px #e53e3e;
+      }
+
+      .loading-spinner {
+        display: none;
+        margin: 15px auto;
+        width: 40px;
+        height: 40px;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #e53e3e;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      .loading-spinner.show {
+        display: block;
+      }
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .tile-input-section {
+        background: #fff3e0;
+        padding: 20px;
+        border-radius: 10px;
+        border: 2px dashed #f59563;
+        margin-top: 20px;
+        display: none;
+        animation: slideIn 0.3s ease;
+      }
+      .tile-input-section.active {
+        display: block;
+      }
+      .tile-input-section h3 {
+        color: #333;
+        margin-bottom: 15px;
+        font-size: 1.1em;
+        text-align: center;
+      }
+      .input-row {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 15px;
+      }
+      .input-row label {
+        font-weight: 600;
+        color: #555;
+        min-width: 80px;
+        text-align: right;
+        padding-left: 10px;
+      }
+      .input-row input {
+        flex: 1;
+        padding: 10px;
+        border: 2px solid #ddd;
+        border-radius: 6px;
+        font-size: 1em;
+        transition: border 0.3s;
+        text-align: right;
+      }
+      .input-row input:focus {
+        outline: none;
+        border-color: #e53e3e;
+      }
+
+      .buttons {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin-top: 25px;
+        flex-wrap: wrap;
+      }
+      button {
+        padding: 12px 24px;
+        font-size: 1.05em;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: all 0.3s;
+        color: white;
+      }
+      button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      .btn-primary {
+        background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+      }
+      .btn-primary:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(229, 62, 62, 0.4);
+      }
+      .btn-secondary {
+        background: #4a5568;
+      }
+      .btn-secondary:hover {
+        background: #2d3748;
+        transform: translateY(-2px);
+      }
+      .btn-success {
+        background: #28a745;
+      }
+      .btn-success:hover {
+        background: #218838;
+        transform: translateY(-2px);
+      }
+
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🎮 الذكاء الاصطناعي - القاهر</h1>
+
+      <div class="status-bar" id="status-bar">
+        <div class="status-text" id="status-text">
+          أدخل أرقام اللوحة واضغط "ابدأ الحل"
+        </div>
+      </div>
+
+      <div class="recommended-move" id="recommended-move">
+        <h2>الحركة المقترحة (الأكثر أماناً):</h2>
+        <div class="move-direction-text" id="move-direction-text"></div>
+        <div class="move-direction-arrow" id="move-direction-arrow"></div>
+      </div>
+
+      <div class="grid-container">
+        <div class="grid" id="solver-grid"></div>
+      </div>
+
+      <div class="loading-spinner" id="loading-spinner"></div>
+
+      <div class="tile-input-section" id="tile-input-section">
+        <h3>📍 إضافة القطعة الجديدة اللي ظهرت</h3>
+        <div class="input-row">
+          <label>القيمة:</label>
+          <input
+            type="number"
+            id="tile-value-input"
+            placeholder="غالباً 1"
+            min="1"
+            max="20"
+          />
+        </div>
+        <div class="buttons" style="margin-top: 0">
+          <button class="btn-success" onclick="confirmNewTile()">
+            ✓ تأكيد
+          </button>
+        </div>
+      </div>
+
+      <div class="buttons">
+        <button
+          class="btn-primary"
+          id="start-solving-btn"
+          onclick="startSolving()"
+        >
+          🚀 استخراج أفضل حركة
+        </button>
+        <button class="btn-secondary" onclick="stopSolving()">
+          ⏹️ تفريغ اللوحة
+        </button>
+        <button
+          class="btn-secondary"
+          onclick="logout()"
+          style="background: #e53e3e"
+        >
+          خروج
+        </button>
+      </div>
+    </div>
+
+    <script>
+      // دالة تسجيل الخروج
+      function logout() {
+        localStorage.removeItem("device_token");
+        window.location.replace("login.html");
+      }
+
+      // ============================================
+      // 🧠 إعداد الـ WEB WORKER
+      // ============================================
+      const workerLogic = `
+            let transpositionTable = new Map();
+
+            function copyBoard(board) { return board.map(row => [...row]); }
+            function boardToString(board) { return board.flat().join(','); }
+
+            function moveLeft(board) {
+                let moved = false; let score = 0; let newBoard = copyBoard(board);
+                for (let i = 0; i < 4; i++) {
+                    let row = newBoard[i].filter(val => val !== 0); let newRow = [];
+                    for (let j = 0; j < row.length; j++) {
+                        if (j + 1 < row.length && row[j] === row[j + 1]) { 
+                            const newVal = row[j] + 1; newRow.push(newVal);
+                            score += Math.pow(2, newVal); j++; 
+                        } else { newRow.push(row[j]); }
+                    }
+                    while (newRow.length < 4) newRow.push(0);
+                    if (newBoard[i].join(',') !== newRow.join(',')) moved = true;
+                    newBoard[i] = newRow;
+                }
+                return {board: newBoard, moved, score};
+            }
+
+            function moveRight(board) {
+                let moved = false; let score = 0; let newBoard = copyBoard(board);
+                for (let i = 0; i < 4; i++) {
+                    let row = newBoard[i].filter(val => val !== 0); let newRow = [];
+                    for (let j = row.length - 1; j >= 0; j--) {
+                        if (j - 1 >= 0 && row[j] === row[j - 1]) {
+                            const newVal = row[j] + 1; newRow.unshift(newVal);
+                            score += Math.pow(2, newVal); j--;
+                        } else { newRow.unshift(row[j]); }
+                    }
+                    while (newRow.length < 4) newRow.unshift(0);
+                    if (newBoard[i].join(',') !== newRow.join(',')) moved = true;
+                    newBoard[i] = newRow;
+                }
+                return {board: newBoard, moved, score};
+            }
+
+            function moveUp(board) {
+                let moved = false; let score = 0; let newBoard = copyBoard(board);
+                for (let j = 0; j < 4; j++) {
+                    let col = []; for (let i = 0; i < 4; i++) if (newBoard[i][j] !== 0) col.push(newBoard[i][j]);
+                    let newCol = [];
+                    for (let i = 0; i < col.length; i++) {
+                        if (i + 1 < col.length && col[i] === col[i + 1]) {
+                            const newVal = col[i] + 1; newCol.push(newVal);
+                            score += Math.pow(2, newVal); i++;
+                        } else { newCol.push(col[i]); }
+                    }
+                    while (newCol.length < 4) newCol.push(0);
+                    for (let i = 0; i < 4; i++) {
+                        if (newBoard[i][j] !== newCol[i]) moved = true;
+                        newBoard[i][j] = newCol[i];
+                    }
+                }
+                return {board: newBoard, moved, score};
+            }
+
+            function moveDown(board) {
+                let moved = false; let score = 0; let newBoard = copyBoard(board);
+                for (let j = 0; j < 4; j++) {
+                    let col = []; for (let i = 0; i < 4; i++) if (newBoard[i][j] !== 0) col.push(newBoard[i][j]);
+                    let newCol = [];
+                    for (let i = col.length - 1; i >= 0; i--) {
+                        if (i - 1 >= 0 && col[i] === col[i - 1]) {
+                            const newVal = col[i] + 1; newCol.unshift(newVal);
+                            score += Math.pow(2, newVal); i--;
+                        } else { newCol.unshift(col[i]); }
+                    }
+                    while (newCol.length < 4) newCol.unshift(0);
+                    for (let i = 0; i < 4; i++) {
+                        if (newBoard[i][j] !== newCol[i]) moved = true;
+                        newBoard[i][j] = newCol[i];
+                    }
+                }
+                return {board: newBoard, moved, score};
+            }
+
+            const CORNER_WEIGHTS = [
+                [100000, 50000, 25000, 10000],
+                [   500,  1000,  5000,  8000],
+                [   200,   100,    50,    20],
+                [     1,     2,     5,    10]
+            ];
+
+            function evaluateBoard(board) {
+                let totalScore = 0; let emptyCount = 0; let smoothness = 0; let cornerScore = 0;
+                let maxTile = 0; let maxTileI = 0; let maxTileJ = 0;
+
+                for (let i = 0; i < 4; i++) {
+                    for (let j = 0; j < 4; j++) {
+                        const value = board[i][j];
+                        if (value === 0) { emptyCount++; } 
+                        else {
+                            let realValue = Math.pow(2, value);
+                            cornerScore += realValue * CORNER_WEIGHTS[i][j];
+
+                            if (value > maxTile) { maxTile = value; maxTileI = i; maxTileJ = j; }
+
+                            if (j + 1 < 4 && board[i][j+1] !== 0) smoothness -= Math.abs(realValue - Math.pow(2, board[i][j+1]));
+                            if (i + 1 < 4 && board[i+1][j] !== 0) smoothness -= Math.abs(realValue - Math.pow(2, board[i+1][j]));
+                        }
+                    }
+                }
+
+                const maxTilePenalty = (maxTileI === 0 && maxTileJ === 0) ? 0 : -5000000;
+                const emptyTileBonus = emptyCount === 0 ? -2000000 : emptyCount * 200000; 
+
+                return cornerScore + emptyTileBonus + (smoothness * 3) + maxTilePenalty;
+            }
+
+            function expectimax(board, depth, isMaximizing) {
+                const boardKey = boardToString(board) + ',' + depth + ',' + isMaximizing;
+                if (transpositionTable.has(boardKey)) return transpositionTable.get(boardKey);
+
+                if (depth === 0) return {score: evaluateBoard(board), move: null};
+                
+                let result;
+                if (isMaximizing) { 
+                    let bestScore = -Infinity; let bestMove = null;
+                    const moves = [ {name: 'UP', func: moveUp}, {name: 'DOWN', func: moveDown}, {name: 'LEFT', func: moveLeft}, {name: 'RIGHT', func: moveRight} ];
+                    
+                    for (const move of moves) {
+                        const res = move.func(board);
+                        if (res.moved) {
+                            const evalResult = expectimax(res.board, depth - 1, false);
+                            const totalScore = evalResult.score + res.score;
+                            if (totalScore > bestScore) { bestScore = totalScore; bestMove = move.name; }
+                        }
+                    }
+                    result = bestMove === null ? {score: evaluateBoard(board), move: null} : {score: bestScore, move: bestMove};
+                } else { 
+                    let totalScore = 0; let emptyCellCount = 0;
+                    for (let i = 0; i < 4; i++) {
+                        for (let j = 0; j < 4; j++) {
+                            if (board[i][j] === 0) {
+                                emptyCellCount++;
+                                const newBoard = copyBoard(board);
+                                newBoard[i][j] = 1; 
+                                totalScore += expectimax(newBoard, depth - 1, true).score;
+                            }
+                        }
+                    }
+                    result = emptyCellCount === 0 ? {score: evaluateBoard(board), move: null} : {score: totalScore / emptyCellCount, move: null};
+                }
+
+                transpositionTable.set(boardKey, result);
+                return result;
+            }
+
+            self.onmessage = function(e) {
+                const { board, maxDepth, timeLimit } = e.data;
+                const startTime = new Date().getTime();
+                let bestMoveOverall = null;
+
+                for (let d = 1; d <= maxDepth; d++) {
+                    transpositionTable.clear();
+                    const result = expectimax(board, d, true);
+                    
+                    if (result.move) bestMoveOverall = result.move;
+                    else break; 
+
+                    if (new Date().getTime() - startTime > timeLimit) break; 
+                }
+                
+                self.postMessage(bestMoveOverall);
+            };
+        `;
+
+      const blob = new Blob([workerLogic], { type: "application/javascript" });
+      const aiWorker = new Worker(URL.createObjectURL(blob));
+
+      // ============================================
+      // 🖥️ واجهة المستخدم (UI Logic)
+      // ============================================
+      let solverBoard = Array(4)
+        .fill()
+        .map(() => Array(4).fill(0));
+      let solverState = "INITIAL_INPUT";
+      let selectedCell = null;
+      let isLoopActive = false;
+
+      const dom = {
+        grid: document.getElementById("solver-grid"),
+        statusBar: document.getElementById("status-bar"),
+        statusText: document.getElementById("status-text"),
+        startBtn: document.getElementById("start-solving-btn"),
+        recMove: document.getElementById("recommended-move"),
+        moveDirText: document.getElementById("move-direction-text"),
+        moveDirArrow: document.getElementById("move-direction-arrow"),
+        loadingSpinner: document.getElementById("loading-spinner"),
+        tileInput: document.getElementById("tile-input-section"),
+        tileValueInput: document.getElementById("tile-value-input"),
+      };
+
+      function initializeSolverGrid() {
+        dom.grid.innerHTML = "";
+        for (let i = 0; i < 4; i++) {
+          for (let j = 0; j < 4; j++) {
+            const cell = document.createElement("div");
+            cell.className = "cell";
+            cell.dataset.row = i;
+            cell.dataset.col = j;
+
+            if (solverState === "INITIAL_INPUT") {
+              const input = document.createElement("input");
+              input.type = "number";
+              input.min = "0";
+              input.max = "20";
+              input.placeholder = "0";
+              input.id = `cell-${i}-${j}`;
+              cell.appendChild(input);
+            } else {
+              const value = solverBoard[i][j];
+              if (value > 0) {
+                cell.classList.add("tile", `tile-${value}`);
+                cell.textContent = value;
+              }
+              if (solverState === "WAITING_POSITION" && value === 0) {
+                cell.classList.add("clickable");
+                cell.addEventListener("click", handleCellClick);
+              }
+            }
+            dom.grid.appendChild(cell);
+          }
+        }
+      }
+
+      function updateSolverStatus(message, type = "normal") {
+        dom.statusText.textContent = message;
+        dom.statusBar.className = "status-bar";
+        if (type === "waiting") dom.statusBar.classList.add("waiting");
+        else if (type === "success") dom.statusBar.classList.add("success");
+        else if (type === "thinking") dom.statusBar.classList.add("thinking");
+      }
+
+      function setSolverState(newState) {
+        solverState = newState;
+        dom.startBtn.disabled = false;
+        dom.loadingSpinner.classList.remove("show");
+        dom.recMove.classList.remove("show");
+        dom.tileInput.classList.remove("active");
+
+        switch (newState) {
+          case "INITIAL_INPUT":
+            dom.startBtn.textContent = "🚀 استخراج أفضل حركة";
+            updateSolverStatus(
+              'أدخل الأرقام الحالية واضغط "استخراج أفضل حركة"',
+            );
+            initializeSolverGrid();
+            break;
+          case "CALCULATING":
+            dom.startBtn.disabled = true;
+            dom.loadingSpinner.classList.add("show");
+            updateSolverStatus(
+              "🔥 الذكاء الاصطناعي بيحسب... (قد يستغرق 15 ثانية)",
+              "thinking",
+            );
+            break;
+          case "WAITING_POSITION":
+            dom.startBtn.disabled = true;
+            dom.recMove.classList.add("show");
+            updateSolverStatus(
+              "اضغط على المربع الفاضي اللي ظهرت فيه القطعة الجديدة",
+              "waiting",
+            );
+            initializeSolverGrid();
+            break;
+          case "WAITING_VALUE":
+            dom.startBtn.disabled = true;
+            dom.recMove.classList.add("show");
+            dom.tileInput.classList.add("active");
+            dom.tileValueInput.value = "";
+            dom.tileValueInput.focus();
+            updateSolverStatus("أدخل قيمة القطعة الجديدة", "waiting");
+            break;
+        }
+      }
+
+      function startSolving() {
+        if (isLoopActive) return;
+        let hasValue = false;
+        let isValid = true;
+        for (let i = 0; i < 4; i++) {
+          for (let j = 0; j < 4; j++) {
+            const input = document.getElementById(`cell-${i}-${j}`);
+            const value = parseInt(input.value) || 0;
+            if (value < 0 || value > 25) isValid = false;
+            solverBoard[i][j] = value;
+            if (value > 0) hasValue = true;
+          }
+        }
+        if (!isValid) {
+          updateSolverStatus("⚠️ الأرقام غير صحيحة!", "waiting");
+          return;
+        }
+        if (!hasValue) {
+          updateSolverStatus("⚠️ أدخل قطعة واحدة على الأقل!", "waiting");
+          return;
+        }
+
+        isLoopActive = true;
+        calculateNextMove();
+      }
+
+      function calculateNextMove() {
+        if (!isLoopActive) return;
+        setSolverState("CALCULATING");
+
+        aiWorker.postMessage({
+          board: solverBoard,
+          maxDepth: 10,
+          timeLimit: 20000,
+        });
+      }
+
+      aiWorker.onmessage = function (e) {
+        const bestMove = e.data;
+
+        if (!bestMove) {
+          updateSolverStatus("💀 الجيم خلص! مفيش حركات متاحة.", "success");
+          stopSolving();
+          return;
+        }
+
+        let tempBoard = Array(4)
+          .fill()
+          .map(() => Array(4).fill(0));
+        for (let i = 0; i < 4; i++)
+          for (let j = 0; j < 4; j++) tempBoard[i][j] = solverBoard[i][j];
+
+        function applyMoveUp() {
+          for (let j = 0; j < 4; j++) {
+            let col = [];
+            for (let i = 0; i < 4; i++)
+              if (solverBoard[i][j] !== 0) col.push(solverBoard[i][j]);
+            let newCol = [];
+            for (let i = 0; i < col.length; i++) {
+              if (i + 1 < col.length && col[i] === col[i + 1]) {
+                newCol.push(col[i] + 1);
+                i++;
+              } else {
+                newCol.push(col[i]);
+              }
+            }
+            while (newCol.length < 4) newCol.push(0);
+            for (let i = 0; i < 4; i++) solverBoard[i][j] = newCol[i];
+          }
+        }
+        function applyMoveDown() {
+          for (let j = 0; j < 4; j++) {
+            let col = [];
+            for (let i = 0; i < 4; i++)
+              if (solverBoard[i][j] !== 0) col.push(solverBoard[i][j]);
+            let newCol = [];
+            for (let i = col.length - 1; i >= 0; i--) {
+              if (i - 1 >= 0 && col[i] === col[i - 1]) {
+                newCol.unshift(col[i] + 1);
+                i--;
+              } else {
+                newCol.unshift(col[i]);
+              }
+            }
+            while (newCol.length < 4) newCol.unshift(0);
+            for (let i = 0; i < 4; i++) solverBoard[i][j] = newCol[i];
+          }
+        }
+        function applyMoveLeft() {
+          for (let i = 0; i < 4; i++) {
+            let row = solverBoard[i].filter((val) => val !== 0);
+            let newRow = [];
+            for (let j = 0; j < row.length; j++) {
+              if (j + 1 < row.length && row[j] === row[j + 1]) {
+                newRow.push(row[j] + 1);
+                j++;
+              } else {
+                newRow.push(row[j]);
+              }
+            }
+            while (newRow.length < 4) newRow.push(0);
+            solverBoard[i] = newRow;
+          }
+        }
+        function applyMoveRight() {
+          for (let i = 0; i < 4; i++) {
+            let row = solverBoard[i].filter((val) => val !== 0);
+            let newRow = [];
+            for (let j = row.length - 1; j >= 0; j--) {
+              if (j - 1 >= 0 && row[j] === row[j - 1]) {
+                newRow.unshift(row[j] + 1);
+                j--;
+              } else {
+                newRow.unshift(row[j]);
+              }
+            }
+            while (newRow.length < 4) newRow.unshift(0);
+            solverBoard[i] = newRow;
+          }
+        }
+
+        let moveText = "";
+        let moveArrow = "";
+        if (bestMove === "UP") {
+          applyMoveUp();
+          moveText = "فوق";
+          moveArrow = "↑";
+        }
+        if (bestMove === "DOWN") {
+          applyMoveDown();
+          moveText = "تحت";
+          moveArrow = "↓";
+        }
+        if (bestMove === "LEFT") {
+          applyMoveLeft();
+          moveText = "يسار";
+          moveArrow = "←";
+        }
+        if (bestMove === "RIGHT") {
+          applyMoveRight();
+          moveText = "يمين";
+          moveArrow = "→";
+        }
+
+        dom.moveDirText.textContent = moveText;
+        dom.moveDirArrow.textContent = moveArrow;
+        setSolverState("WAITING_POSITION");
+      };
+
+      function handleCellClick(e) {
+        if (solverState !== "WAITING_POSITION") return;
+        document
+          .querySelectorAll(".cell.selected")
+          .forEach((c) => c.classList.remove("selected"));
+        e.currentTarget.classList.add("selected");
+        selectedCell = {
+          row: parseInt(e.currentTarget.dataset.row),
+          col: parseInt(e.currentTarget.dataset.col),
+        };
+        setSolverState("WAITING_VALUE");
+      }
+
+      function confirmNewTile() {
+        if (solverState !== "WAITING_VALUE" || !selectedCell) return;
+        const value = parseInt(dom.tileValueInput.value.trim());
+        if (isNaN(value) || value < 1) {
+          alert("أدخل رقم صحيح");
+          return;
+        }
+
+        solverBoard[selectedCell.row][selectedCell.col] = value;
+        selectedCell = null;
+        updateSolverStatus(
+          "✅ القطعة اتسجلت! جاري حساب الحركة التالية...",
+          "success",
+        );
+        calculateNextMove();
+      }
+
+      function stopSolving() {
+        isLoopActive = false;
+        solverBoard = Array(4)
+          .fill()
+          .map(() => Array(4).fill(0));
+        selectedCell = null;
+        setSolverState("INITIAL_INPUT");
+      }
+
+      window.addEventListener("load", () => initializeSolverGrid());
+      dom.tileValueInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          confirmNewTile();
+        }
+      });
+    </script>
+  </body>
+</html>

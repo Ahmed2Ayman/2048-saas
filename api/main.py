@@ -3,20 +3,22 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional
 import uuid
+import os
 from supabase import create_client, Client
+from fastapi.responses import FileResponse
 
 app = FastAPI()
 
-# إعدادات الأمان للسماح للواجهة بالاتصال بالسيرفر
+# إعدادات الأمان
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # هنغير دي بعدين لرابط موقعك الحقيقي
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# بيانات الاتصال بقاعدة بيانات Supabase 
+# بيانات الاتصال بـ Supabase 
 SUPABASE_URL = "https://kzuwufstqmqevtphmjhb.supabase.co"
 SUPABASE_KEY = "sb_publishable_KKVwrHB_RLoQQv_Mg_ySFw_Sa_ZJix3"
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
@@ -30,7 +32,20 @@ class LoginRequest(BaseModel):
 class VerifyRequest(BaseModel):
     device_token: str
 
-# ----------------- مسار تسجيل الدخول -----------------
+# ----------------- مسارات فتح الصفحات (الجديدة) -----------------
+
+@app.get("/")
+def read_index():
+    # لفتح صفحة اللعبة الرئيسية
+    return FileResponse(os.path.join(os.getcwd(), "index.html"))
+
+@app.get("/login.html")
+def read_login():
+    # لفتح صفحة تسجيل الدخول
+    return FileResponse(os.path.join(os.getcwd(), "login.html"))
+
+# ----------------- مسارات الـ API (المنطق) -----------------
+
 @app.post("/api/login")
 def login(req: LoginRequest):
     response = supabase.table("users").select("*").eq("email", req.email).eq("password", req.password).execute()
@@ -41,7 +56,6 @@ def login(req: LoginRequest):
     user = response.data[0]
     db_device_token = user.get("device_token")
     
-    # لو أول مرة يسجل دخول
     if not db_device_token:
         new_token = str(uuid.uuid4())
         supabase.table("users").update({"device_token": new_token}).eq("id", user["id"]).execute()
@@ -51,18 +65,15 @@ def login(req: LoginRequest):
             "device_token": new_token
         }
     
-    # لو بيحاول يدخل من جهاز تاني
     if db_device_token != req.device_token:
         raise HTTPException(status_code=403, detail="عفواً، هذا الحساب مرتبط بجهاز آخر. تواصل مع الإدارة.")
         
-    # لو نفس الجهاز
     return {
         "status": "success", 
         "message": "مرحباً بك مجدداً", 
         "device_token": db_device_token
     }
 
-# ----------------- مسار حماية صفحة اللعبة -----------------
 @app.post("/api/verify")
 def verify_token(req: VerifyRequest):
     response = supabase.table("users").select("*").eq("device_token", req.device_token).execute()

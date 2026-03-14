@@ -5,11 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>تسجيل الدخول - الذكاء الاصطناعي</title>
     <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
       body {
         font-family: "Tahoma", "Segoe UI", sans-serif;
         background: linear-gradient(135deg, #1e1e24 0%, #0a0a0d 100%);
@@ -28,73 +24,34 @@
         max-width: 400px;
         text-align: center;
       }
-      h2 {
-        margin-bottom: 30px;
-        color: #1e1e24;
-        font-size: 1.8em;
-      }
-      .input-group {
-        margin-bottom: 20px;
-        text-align: right;
-      }
+      h2 { margin-bottom: 30px; color: #1e1e24; font-size: 1.8em; }
+      .input-group { margin-bottom: 20px; text-align: right; }
       .input-group label {
-        display: block;
-        margin-bottom: 8px;
-        font-weight: bold;
-        color: #555;
+        display: block; margin-bottom: 8px; font-weight: bold; color: #555;
       }
       .input-group input {
-        width: 100%;
-        padding: 12px;
-        border: 2px solid #ddd;
-        border-radius: 8px;
-        font-size: 1em;
-        transition: all 0.3s;
-        text-align: left;
-        direction: ltr;
+        width: 100%; padding: 12px; border: 2px solid #ddd;
+        border-radius: 8px; font-size: 1em; transition: all 0.3s;
+        text-align: left; direction: ltr;
       }
-      .input-group input:focus {
-        border-color: #e53e3e;
-        outline: none;
-      }
+      .input-group input:focus { border-color: #e53e3e; outline: none; }
       .btn-login {
-        width: 100%;
-        padding: 15px;
+        width: 100%; padding: 15px;
         background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-size: 1.2em;
-        font-weight: bold;
-        cursor: pointer;
-        transition: transform 0.2s;
+        color: white; border: none; border-radius: 8px; font-size: 1.2em;
+        font-weight: bold; cursor: pointer; transition: transform 0.2s;
       }
       .btn-login:hover {
         transform: translateY(-2px);
         box-shadow: 0 10px 20px rgba(229, 62, 62, 0.3);
       }
-      .btn-login:disabled {
-        opacity: 0.7;
-        cursor: not-allowed;
+      .btn-login:disabled { opacity: 0.7; cursor: not-allowed; }
+      .error-msg, .success-msg {
+        margin-top: 15px; font-weight: bold; display: none;
+        padding: 10px; border-radius: 8px;
       }
-      .error-msg {
-        color: #e53e3e;
-        margin-top: 15px;
-        font-weight: bold;
-        display: none;
-        padding: 10px;
-        background: #fed7d7;
-        border-radius: 8px;
-      }
-      .success-msg {
-        color: #28a745;
-        margin-top: 15px;
-        font-weight: bold;
-        display: none;
-        padding: 10px;
-        background: #d4edda;
-        border-radius: 8px;
-      }
+      .error-msg { color: #e53e3e; background: #fed7d7; }
+      .success-msg { color: #28a745; background: #d4edda; }
     </style>
   </head>
   <body>
@@ -103,21 +60,11 @@
       <form id="loginForm">
         <div class="input-group">
           <label>البريد الإلكتروني</label>
-          <input
-            type="email"
-            id="email"
-            required
-            placeholder="name@example.com"
-          />
+          <input type="email" id="email" required placeholder="name@example.com" />
         </div>
         <div class="input-group">
           <label>كلمة المرور</label>
-          <input
-            type="password"
-            id="password"
-            required
-            placeholder="••••••••"
-          />
+          <input type="password" id="password" required placeholder="••••••••" />
         </div>
         <button type="submit" class="btn-login" id="loginBtn">دخول</button>
       </form>
@@ -126,9 +73,7 @@
     </div>
 
     <script>
-      document
-        .getElementById("loginForm")
-        .addEventListener("submit", async function (e) {
+      document.getElementById("loginForm").addEventListener("submit", async function (e) {
           e.preventDefault();
 
           const email = document.getElementById("email").value;
@@ -145,13 +90,14 @@
           successDiv.style.display = "none";
 
           try {
-            const response = await fetch("http:/api/login", {
+            // التعديل تم هنا: استخدام المسار الصحيح للـ API
+            const response = await fetch("/api/login", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 email: email,
                 password: password,
-                device_token: storedToken,
+                device_token: storedToken || null, // تجنب إرسال سلسلة فارغة إذا لم يكن هناك توكن
               }),
             });
 
@@ -165,8 +111,9 @@
                 localStorage.setItem("device_token", data.device_token);
               }
 
+              // التوجيه لصفحة اللعبة (تأكد أن اسم ملف اللعبة هو index.html أو game.html)
               setTimeout(() => {
-                window.location.href = "game.html";
+                window.location.href = "index.html"; // غيرها لـ game.html لو ده اسم الملف عندك
               }, 1500);
             } else {
               errorDiv.textContent = data.detail;
@@ -175,8 +122,7 @@
               btn.textContent = "دخول";
             }
           } catch (error) {
-            errorDiv.textContent =
-              "حدث خطأ في الاتصال بالسيرفر. تأكد أن السيرفر يعمل.";
+            errorDiv.textContent = "حدث خطأ في الاتصال بالسيرفر. تأكد أن السيرفر يعمل.";
             errorDiv.style.display = "block";
             btn.disabled = false;
             btn.textContent = "دخول";

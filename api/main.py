@@ -3,9 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional
 import uuid
-import os
 from supabase import create_client, Client
-from fastapi.responses import FileResponse
 
 app = FastAPI()
 
@@ -32,19 +30,7 @@ class LoginRequest(BaseModel):
 class VerifyRequest(BaseModel):
     device_token: str
 
-# ----------------- مسارات فتح الصفحات (الجديدة) -----------------
-
-@app.get("/")
-def read_index():
-    # لفتح صفحة اللعبة الرئيسية
-    return FileResponse(os.path.join(os.getcwd(), "index.html"))
-
-@app.get("/login.html")
-def read_login():
-    # لفتح صفحة تسجيل الدخول
-    return FileResponse(os.path.join(os.getcwd(), "login.html"))
-
-# ----------------- مسارات الـ API (المنطق) -----------------
+# ----------------- مسارات الـ API فقط -----------------
 
 @app.post("/api/login")
 def login(req: LoginRequest):

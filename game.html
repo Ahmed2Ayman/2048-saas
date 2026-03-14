@@ -15,7 +15,8 @@
           return;
         }
         try {
-          const response = await fetch("http:/api/verify", {
+          // التعديل تم هنا: استخدام المسار الصحيح للـ API
+          const response = await fetch("/api/verify", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ device_token: token }),
@@ -465,7 +466,6 @@
     </div>
 
     <script>
-      // دالة تسجيل الخروج
       function logout() {
         localStorage.removeItem("device_token");
         window.location.replace("login.html");

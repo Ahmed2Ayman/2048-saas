@@ -5,30 +5,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>الذكاء الاصطناعي - القاهر</title>
 
-    <script src="https://openfpcdn.io/fingerprintjs/v4"></script>
     <script>
       document.documentElement.style.display = "none"; // إخفاء الصفحة فوراً
 
       async function checkSecurity() {
         try {
-          // استخراج بصمة الجهاز الحالية
-          const fp = await FingerprintJS.load();
+          // الطريقة الحديثة والصحيحة لاستدعاء البصمة (زي صفحة الدخول)
+          const fpPromise =
+            import("https://openfpcdn.io/fingerprintjs/v4").then((fp) =>
+              fp.load(),
+            );
+          const fp = await fpPromise;
           const result = await fp.get();
           const visitorId = result.visitorId;
 
-          // التحقق من السيرفر
-          const response = await fetch("/api/verify", {
+          // الرابط الكامل للسيرفر المحلي
+          const response = await fetch("http://127.0.0.1:8000/api/verify", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ device_token: visitorId }),
           });
 
           if (response.ok) {
-            document.documentElement.style.display = ""; // إظهار الصفحة
+            document.documentElement.style.display = ""; // إظهار الصفحة واللعبة
           } else {
+            alert("عفواً، هذا الجهاز غير مصرح له.");
             window.location.replace("index.html"); // طرد لصفحة الدخول
           }
         } catch (error) {
+          console.error("سبب الخطأ الحقيقي:", error);
           alert("خطأ في الاتصال بخادم الحماية.");
           window.location.replace("index.html");
         }

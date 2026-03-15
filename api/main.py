@@ -17,13 +17,13 @@ app.add_middleware(
 )
 
 # بيانات الاتصال بـ Supabase 
-# (يفضل مستقبلاً نقلهم لملف .env للحماية)
 SUPABASE_URL = "https://kzuwufstqmqevtphmjhb.supabase.co"
 SUPABASE_KEY = "sb_publishable_KKVwrHB_RLoQQv_Mg_ySFw_Sa_ZJix3"
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # ----------------- نماذج البيانات -----------------
-class indexRequest(BaseModel):
+# رجعناها LoginRequest زي ما كانت
+class LoginRequest(BaseModel):
     email: str
     password: str
     device_token: Optional[str] = None
@@ -33,13 +33,13 @@ class VerifyRequest(BaseModel):
 
 # ----------------- مسارات الـ API -----------------
 
-# مسار رئيسي للتأكد إن السيرفر شغال بيرد
 @app.get("/")
 def read_root():
     return {"message": "السيرفر شغال وزي الفل!"}
 
-@app.post("/api/index")
-def index(req: indexRequest):
+# رجعنا المسار لـ /api/login
+@app.post("/api/login")
+def login(req: LoginRequest):
     response = supabase.table("users").select("*").eq("email", req.email).eq("password", req.password).execute()
     
     if not response.data:

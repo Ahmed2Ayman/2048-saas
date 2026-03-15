@@ -152,7 +152,7 @@
             const visitorId = result.visitorId;
 
             // إرسال البيانات للسيرفر المحلي (تأكد إن السيرفر شغال)
-            const response = await fetch("/api/login", {
+            const response = await fetch("http://127.0.0.1:8000/api/login", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
@@ -167,6 +167,10 @@
             if (response.ok) {
               successDiv.textContent = data.message;
               successDiv.style.display = "block";
+
+              // السطر ده هو اللي هيحل المشكلة للأبد
+              localStorage.setItem("device_token", visitorId);
+
               setTimeout(() => {
                 window.location.href = "game.html";
               }, 1500);

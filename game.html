@@ -11,7 +11,7 @@
       async function checkSecurity() {
         const token = localStorage.getItem("device_token");
         if (!token) {
-          window.location.replace("login.html"); // طرد لصفحة الدخول
+          window.location.replace("index.html"); // طرد لصفحة الدخول
           return;
         }
         try {
@@ -26,11 +26,11 @@
             document.documentElement.style.display = ""; // إظهار الصفحة
           } else {
             localStorage.removeItem("device_token");
-            window.location.replace("login.html");
+            window.location.replace("index.html");
           }
         } catch (error) {
           alert("خطأ في الاتصال بخادم الحماية.");
-          window.location.replace("login.html");
+          window.location.replace("index.html");
         }
       }
       checkSecurity();
@@ -468,7 +468,7 @@
     <script>
       function logout() {
         localStorage.removeItem("device_token");
-        window.location.replace("login.html");
+        window.location.replace("index.html");
       }
 
       // ============================================

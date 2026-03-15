@@ -2,7 +2,6 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional
-import uuid
 from supabase import create_client, Client
 
 app = FastAPI()
@@ -16,17 +15,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# بيانات الاتصال بـ Supabase 
 SUPABASE_URL = "https://kzuwufstqmqevtphmjhb.supabase.co"
 SUPABASE_KEY = "sb_publishable_KKVwrHB_RLoQQv_Mg_ySFw_Sa_ZJix3"
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # ----------------- نماذج البيانات -----------------
-# رجعناها LoginRequest زي ما كانت
 class LoginRequest(BaseModel):
     email: str
     password: str
-    device_token: Optional[str] = None
+    device_token: str # هنا السيرفر هيستقبل بصمة الجهاز من الواجهة
 
 class VerifyRequest(BaseModel):
     device_token: str
@@ -37,7 +34,6 @@ class VerifyRequest(BaseModel):
 def read_root():
     return {"message": "السيرفر شغال وزي الفل!"}
 
-# رجعنا المسار لـ /api/login
 @app.post("/api/login")
 def login(req: LoginRequest):
     response = supabase.table("users").select("*").eq("email", req.email).eq("password", req.password).execute()
@@ -48,15 +44,17 @@ def login(req: LoginRequest):
     user = response.data[0]
     db_device_token = user.get("device_token")
     
+    # لو اليوزر بيدخل لأول مرة (مفيش بصمة متسجلة ليه)
     if not db_device_token:
-        new_token = str(uuid.uuid4())
-        supabase.table("users").update({"device_token": new_token}).eq("id", user["id"]).execute()
+        # هنسجل بصمة الجهاز اللي باعتها في الداتا بيز
+        supabase.table("users").update({"device_token": req.device_token}).eq("id", user["id"]).execute()
         return {
             "status": "success", 
-            "message": "تم تسجيل الدخول بنجاح، وتم ربط الحساب بهذا الجهاز", 
-            "device_token": new_token
+            "message": "تم تسجيل الدخول وربط الحساب بجهازك بنجاح", 
+            "device_token": req.device_token
         }
     
+    # لو في بصمة متسجلة، هنقارنها بالبصمة الحالية للجهاز
     if db_device_token != req.device_token:
         raise HTTPException(status_code=403, detail="عفواً، هذا الحساب مرتبط بجهاز آخر. تواصل مع الإدارة.")
         
@@ -71,6 +69,6 @@ def verify_token(req: VerifyRequest):
     response = supabase.table("users").select("*").eq("device_token", req.device_token).execute()
     
     if not response.data:
-        raise HTTPException(status_code=401, detail="غير مصرح بالدخول")
+        raise HTTPException(status_code=401, detail="غير مصرح بالدخول من هذا الجهاز")
     
     return {"status": "success", "message": "مصرح له بالدخول"}

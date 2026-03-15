@@ -19,7 +19,7 @@
         align-items: center;
         color: #333;
       }
-      .login-container {
+      .index-container {
         background: white;
         padding: 40px;
         border-radius: 20px;
@@ -57,7 +57,7 @@
         border-color: #e53e3e;
         outline: none;
       }
-      .btn-login {
+      .btn-index {
         width: 100%;
         padding: 15px;
         background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
@@ -69,11 +69,11 @@
         cursor: pointer;
         transition: transform 0.2s;
       }
-      .btn-login:hover {
+      .btn-index:hover {
         transform: translateY(-2px);
         box-shadow: 0 10px 20px rgba(229, 62, 62, 0.3);
       }
-      .btn-login:disabled {
+      .btn-index:disabled {
         opacity: 0.7;
         cursor: not-allowed;
       }
@@ -96,9 +96,9 @@
     </style>
   </head>
   <body>
-    <div class="login-container">
+    <div class="index-container">
       <h2>تسجيل الدخول للخدمة</h2>
-      <form id="loginForm">
+      <form id="indexForm">
         <div class="input-group">
           <label>البريد الإلكتروني</label>
           <input
@@ -117,7 +117,7 @@
             placeholder="••••••••"
           />
         </div>
-        <button type="submit" class="btn-login" id="loginBtn">دخول</button>
+        <button type="submit" class="btn-index" id="indexBtn">دخول</button>
       </form>
       <div id="errorMsg" class="error-msg"></div>
       <div id="successMsg" class="success-msg"></div>
@@ -125,13 +125,13 @@
 
     <script>
       document
-        .getElementById("loginForm")
+        .getElementById("indexForm")
         .addEventListener("submit", async function (e) {
           e.preventDefault();
 
           const email = document.getElementById("email").value;
           const password = document.getElementById("password").value;
-          const btn = document.getElementById("loginBtn");
+          const btn = document.getElementById("indexBtn");
           const errorDiv = document.getElementById("errorMsg");
           const successDiv = document.getElementById("successMsg");
 
@@ -144,7 +144,7 @@
 
           try {
             // التعديل تم هنا: استخدام المسار الصحيح للـ API
-            const response = await fetch("/api/login", {
+            const response = await fetch("/api/index", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({

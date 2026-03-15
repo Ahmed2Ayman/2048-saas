@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>تسجيل الدخول - الذكاء الاصطناعي</title>
+    <script src="https://openfpcdn.io/fingerprintjs/v4"></script>
     <style>
       * {
         margin: 0;
@@ -135,22 +136,25 @@
           const errorDiv = document.getElementById("errorMsg");
           const successDiv = document.getElementById("successMsg");
 
-          const storedToken = localStorage.getItem("device_token");
-
           btn.disabled = true;
-          btn.textContent = "جاري التحقق...";
+          btn.textContent = "جاري التحقق من الجهاز...";
           errorDiv.style.display = "none";
           successDiv.style.display = "none";
 
           try {
-            // رجعنا المسار لـ /api/login عشان ده المسار الصح في السيرفر
+            // استخراج بصمة الجهاز
+            const fp = await FingerprintJS.load();
+            const result = await fp.get();
+            const visitorId = result.visitorId;
+
+            // إرسال البيانات
             const response = await fetch("/api/login", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 email: email,
                 password: password,
-                device_token: storedToken || null,
+                device_token: visitorId,
               }),
             });
 
@@ -160,11 +164,7 @@
               successDiv.textContent = data.message;
               successDiv.style.display = "block";
 
-              if (data.device_token) {
-                localStorage.setItem("device_token", data.device_token);
-              }
-
-              // التوجيه تم تعديله لصفحة game.html عشان يفتح اللعبة بعد الدخول
+              // التوجيه لصفحة اللعبة
               setTimeout(() => {
                 window.location.href = "game.html";
               }, 1500);

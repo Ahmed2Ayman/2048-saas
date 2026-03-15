@@ -23,7 +23,7 @@ SUPABASE_KEY = "sb_publishable_KKVwrHB_RLoQQv_Mg_ySFw_Sa_ZJix3"
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # ----------------- نماذج البيانات -----------------
-class LoginRequest(BaseModel):
+class indexRequest(BaseModel):
     email: str
     password: str
     device_token: Optional[str] = None
@@ -38,8 +38,8 @@ class VerifyRequest(BaseModel):
 def read_root():
     return {"message": "السيرفر شغال وزي الفل!"}
 
-@app.post("/api/login")
-def login(req: LoginRequest):
+@app.post("/api/index")
+def index(req: indexRequest):
     response = supabase.table("users").select("*").eq("email", req.email).eq("password", req.password).execute()
     
     if not response.data:

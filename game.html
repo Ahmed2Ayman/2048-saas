@@ -5,28 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>الذكاء الاصطناعي - القاهر</title>
 
+    <script src="https://openfpcdn.io/fingerprintjs/v4"></script>
     <script>
       document.documentElement.style.display = "none"; // إخفاء الصفحة فوراً
 
       async function checkSecurity() {
-        const token = localStorage.getItem("device_token");
-        if (!token) {
-          window.location.replace("index.html"); // طرد لصفحة الدخول
-          return;
-        }
         try {
-          // التعديل تم هنا: استخدام المسار الصحيح للـ API
+          // استخراج بصمة الجهاز الحالية
+          const fp = await FingerprintJS.load();
+          const result = await fp.get();
+          const visitorId = result.visitorId;
+
+          // التحقق من السيرفر
           const response = await fetch("/api/verify", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ device_token: token }),
+            body: JSON.stringify({ device_token: visitorId }),
           });
 
           if (response.ok) {
             document.documentElement.style.display = ""; // إظهار الصفحة
           } else {
-            localStorage.removeItem("device_token");
-            window.location.replace("index.html");
+            window.location.replace("index.html"); // طرد لصفحة الدخول
           }
         } catch (error) {
           alert("خطأ في الاتصال بخادم الحماية.");
@@ -96,7 +96,6 @@
         border-right-color: #e53e3e;
         background: #fed7d7;
       }
-
       .recommended-move {
         background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
         color: white;
@@ -126,7 +125,6 @@
         font-size: 2.5em;
         line-height: 1;
       }
-
       .grid-container {
         background: #bbada0;
         border-radius: 10px;
@@ -178,7 +176,6 @@
         outline: 3px solid #e53e3e;
         background: #fff;
       }
-
       .tile {
         background: #eee4da;
         transition: all 0.15s ease;
@@ -196,7 +193,6 @@
         color: white !important;
         animation: none;
       }
-
       @keyframes pulse {
         0%,
         100% {
@@ -206,7 +202,6 @@
           box-shadow: 0 0 0 10px rgba(229, 62, 62, 0);
         }
       }
-
       .tile-1 {
         background: #eee4da;
         color: #776e65;
@@ -280,7 +275,6 @@
         border: 2px solid #e53e3e;
         box-shadow: 0 0 10px #e53e3e;
       }
-
       .loading-spinner {
         display: none;
         margin: 15px auto;
@@ -302,7 +296,6 @@
           transform: rotate(360deg);
         }
       }
-
       .tile-input-section {
         background: #fff3e0;
         padding: 20px;
@@ -347,7 +340,6 @@
         outline: none;
         border-color: #e53e3e;
       }
-
       .buttons {
         display: flex;
         gap: 10px;
@@ -390,7 +382,6 @@
         background: #218838;
         transform: translateY(-2px);
       }
-
       @keyframes slideIn {
         from {
           opacity: 0;
@@ -467,7 +458,7 @@
 
     <script>
       function logout() {
-        localStorage.removeItem("device_token");
+        // الخروج بيودي لصفحة الدخول
         window.location.replace("index.html");
       }
 

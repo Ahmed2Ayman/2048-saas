@@ -6,41 +6,39 @@
     <title>الذكاء الاصطناعي - القاهر</title>
 
     <script>
-      document.documentElement.style.display = "none"; // إخفاء الصفحة فوراً
+      document.documentElement.style.display = "none";
 
       async function checkSecurity() {
         try {
-          // الطريقة الحديثة والصحيحة لاستدعاء البصمة (زي صفحة الدخول)
-          const fpPromise =
-            import("https://openfpcdn.io/fingerprintjs/v4").then((fp) =>
-              fp.load(),
-            );
-          const fp = await fpPromise;
-          const result = await fp.get();
-          const visitorId = result.visitorId;
+          // بيقرا البصمة اللي اتسجلت وقت الدخول
+          const token = localStorage.getItem("device_token");
 
-          // الرابط الكامل للسيرفر المحلي
+          if (!token) {
+            window.location.replace("index.html");
+            return;
+          }
+
+          // بيبعت البصمة للسيرفر (تأكد إن الرابط مختصر عشان Vercel)
           const response = await fetch("/api/verify", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ device_token: visitorId }),
+            body: JSON.stringify({ device_token: token }),
           });
 
           if (response.ok) {
-            document.documentElement.style.display = ""; // إظهار الصفحة واللعبة
+            document.documentElement.style.display = "";
           } else {
             alert("عفواً، هذا الجهاز غير مصرح له.");
-            window.location.replace("index.html"); // طرد لصفحة الدخول
+            localStorage.removeItem("device_token");
+            window.location.replace("index.html");
           }
         } catch (error) {
-          console.error("سبب الخطأ الحقيقي:", error);
           alert("خطأ في الاتصال بخادم الحماية.");
           window.location.replace("index.html");
         }
       }
       checkSecurity();
     </script>
-
     <style>
       * {
         margin: 0;

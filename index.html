@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>تسجيل الدخول - الذكاء الاصطناعي</title>
-    <script src="https://openfpcdn.io/fingerprintjs/v4"></script>
+
     <style>
       * {
         margin: 0;
@@ -142,13 +142,17 @@
           successDiv.style.display = "none";
 
           try {
-            // استخراج بصمة الجهاز
-            const fp = await FingerprintJS.load();
+            // الطريقة المعتمدة والصحيحة لتحميل مكتبة البصمة
+            const fpPromise =
+              import("https://openfpcdn.io/fingerprintjs/v4").then((fp) =>
+                fp.load(),
+              );
+            const fp = await fpPromise;
             const result = await fp.get();
             const visitorId = result.visitorId;
 
-            // إرسال البيانات
-            const response = await fetch("/api/login", {
+            // إرسال البيانات للسيرفر المحلي (تأكد إن السيرفر شغال)
+            const response = await fetch("http://127.0.0.1:8000/api/login", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
@@ -163,8 +167,6 @@
             if (response.ok) {
               successDiv.textContent = data.message;
               successDiv.style.display = "block";
-
-              // التوجيه لصفحة اللعبة
               setTimeout(() => {
                 window.location.href = "game.html";
               }, 1500);
@@ -175,8 +177,11 @@
               btn.textContent = "دخول";
             }
           } catch (error) {
+            // السطر ده هيطبع المشكلة الحقيقية في الكونسول
+            console.error("الخطأ الحقيقي هو:", error);
+
             errorDiv.textContent =
-              "حدث خطأ في الاتصال بالسيرفر. تأكد أن السيرفر يعمل.";
+              "حدث خطأ. اضغط F12 وافتح الـ Console لمعرفة السبب الحقيقي.";
             errorDiv.style.display = "block";
             btn.disabled = false;
             btn.textContent = "دخول";

@@ -1,7 +1,5 @@
-import os
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
 from pydantic import BaseModel, EmailStr
 from supabase import create_client, Client
 
@@ -27,16 +25,6 @@ class LoginRequest(BaseModel):
 
 class VerifyRequest(BaseModel):
     device_token: str
-
-# ----------------- مسارات عرض الصفحات -----------------
-
-@app.get("/")
-def read_index():
-    return FileResponse("index.html")
-
-@app.get("/game")
-def read_game():
-    return FileResponse("game.html")
 
 # ----------------- مسارات الـ API (الباك إند) -----------------
 

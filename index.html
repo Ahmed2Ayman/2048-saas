@@ -1,196 +1,149 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-   <title> دمج الحيوانات </title>
-
+    <title>Lord Kasar | بوابة الدخول</title>
     <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
+      :root {
+        --primary: #e53e3e;
+        --primary-hover: #c53030;
+        --bg-dark: #0a0a0d;
+        --card-bg: rgba(30, 30, 36, 0.85);
+        --text-light: #f4f4f5;
+        --text-muted: #a1a1aa;
+        --input-bg: rgba(255, 255, 255, 0.05);
+        --input-border: rgba(255, 255, 255, 0.1);
       }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+
       body {
-        font-family: "Tahoma", "Segoe UI", sans-serif;
-        background: linear-gradient(135deg, #1e1e24 0%, #0a0a0d 100%);
-        min-height: 100vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        color: #333;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: radial-gradient(circle at 50% -20%, #2d1818, var(--bg-dark));
+        min-height: 100vh; display: flex; justify-content: center; align-items: center;
+        color: var(--text-light); overflow: hidden;
       }
-      .index-container {
-        background: white;
-        padding: 40px;
-        border-radius: 20px;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-        width: 100%;
-        max-width: 400px;
-        text-align: center;
+
+      .glow-blob {
+        position: absolute; width: 300px; height: 300px; background: var(--primary);
+        border-radius: 50%; filter: blur(100px); opacity: 0.15;
+        animation: float 10s infinite alternate ease-in-out; z-index: 0;
       }
-      h2 {
-        margin-bottom: 30px;
-        color: #1e1e24;
-        font-size: 1.8em;
+
+      @keyframes float { 0% { transform: translate(-50px, -50px); } 100% { transform: translate(50px, 50px); } }
+
+      .login-container {
+        background: var(--card-bg); backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 24px; padding: 40px;
+        width: 100%; max-width: 420px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        position: relative; z-index: 1; transform: translateY(20px); opacity: 0;
+        animation: fadeUp 0.6s ease forwards;
       }
-      .input-group {
-        margin-bottom: 20px;
-        text-align: right;
-      }
-      .input-group label {
-        display: block;
-        margin-bottom: 8px;
-        font-weight: bold;
-        color: #555;
-      }
+
+      @keyframes fadeUp { to { transform: translateY(0); opacity: 1; } }
+
+      .header { text-align: center; margin-bottom: 35px; }
+      .header h1 { font-size: 2em; font-weight: 800; background: linear-gradient(135deg, #fff, #a1a1aa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px; }
+      .header p { color: var(--text-muted); font-size: 0.95em; }
+
+      .input-group { margin-bottom: 20px; text-align: right; }
+      .input-group label { display: block; margin-bottom: 8px; font-size: 0.9em; font-weight: 600; color: var(--text-muted); }
       .input-group input {
-        width: 100%;
-        padding: 12px;
-        border: 2px solid #ddd;
-        border-radius: 8px;
-        font-size: 1em;
-        transition: all 0.3s;
-        text-align: left;
-        direction: ltr;
+        width: 100%; padding: 14px 16px; background: var(--input-bg); border: 1px solid var(--input-border);
+        border-radius: 12px; color: var(--text-light); font-size: 1em; direction: ltr; text-align: left; transition: all 0.3s ease;
       }
-      .input-group input:focus {
-        border-color: #e53e3e;
-        outline: none;
+      .input-group input:focus { outline: none; border-color: var(--primary); background: rgba(229, 62, 62, 0.05); }
+
+      .btn-submit {
+        width: 100%; padding: 16px; background: linear-gradient(135deg, var(--primary), #b91c1c);
+        color: white; border: none; border-radius: 12px; font-size: 1.1em; font-weight: bold;
+        cursor: pointer; transition: all 0.3s; display: flex; justify-content: center; align-items: center; gap: 10px;
       }
-      .btn-index {
-        width: 100%;
-        padding: 15px;
-        background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-size: 1.2em;
-        font-weight: bold;
-        cursor: pointer;
-        transition: transform 0.2s;
-      }
-      .btn-index:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 20px rgba(229, 62, 62, 0.3);
-      }
-      .btn-index:disabled {
-        opacity: 0.7;
-        cursor: not-allowed;
-      }
-      .error-msg,
-      .success-msg {
-        margin-top: 15px;
-        font-weight: bold;
-        display: none;
-        padding: 10px;
-        border-radius: 8px;
-      }
-      .error-msg {
-        color: #e53e3e;
-        background: #fed7d7;
-      }
-      .success-msg {
-        color: #28a745;
-        background: #d4edda;
-      }
+      .btn-submit:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(229, 62, 62, 0.4); }
+      .btn-submit:disabled { background: #3f3f46; color: #a1a1aa; cursor: not-allowed; }
+
+      .alert { margin-top: 20px; padding: 14px; border-radius: 10px; font-size: 0.9em; font-weight: 600; text-align: center; display: none; }
+      .alert-error { background: rgba(229, 62, 62, 0.1); color: #fc8181; border: 1px solid rgba(229, 62, 62, 0.2); }
+      .alert-success { background: rgba(72, 187, 120, 0.1); color: #68d391; border: 1px solid rgba(72, 187, 120, 0.2); }
+
+      .loader { width: 20px; height: 20px; border: 3px solid rgba(255, 255, 255, 0.3); border-radius: 50%; border-top-color: white; animation: spin 1s infinite linear; display: none; }
+      @keyframes spin { to { transform: rotate(360deg); } }
     </style>
   </head>
   <body>
-    <div class="index-container">
-      <h2>تسجيل الدخول للخدمة</h2>
-      <form id="indexForm">
+    <div class="glow-blob"></div>
+    <div class="login-container">
+      <div class="header">
+        <h1>Lord Kasar ⚒️</h1>
+        <p>بوابة الدخول لنظام الأتمتة المتقدم</p>
+      </div>
+
+      <form id="loginForm">
         <div class="input-group">
           <label>البريد الإلكتروني</label>
-          <input
-            type="email"
-            id="email"
-            required
-            placeholder="name@example.com"
-          />
+          <input type="email" id="email" required placeholder="admin@domain.com" />
         </div>
         <div class="input-group">
           <label>كلمة المرور</label>
-          <input
-            type="password"
-            id="password"
-            required
-            placeholder="••••••••"
-          />
+          <input type="password" id="password" required placeholder="••••••••" />
         </div>
-        <button type="submit" class="btn-index" id="indexBtn">دخول</button>
+        <button type="submit" class="btn-submit" id="submitBtn">
+          <span id="btnText">تسجيل الدخول</span>
+          <div class="loader" id="btnLoader"></div>
+        </button>
       </form>
-      <div id="errorMsg" class="error-msg"></div>
-      <div id="successMsg" class="success-msg"></div>
+
+      <div id="errorAlert" class="alert alert-error"></div>
+      <div id="successAlert" class="alert alert-success"></div>
     </div>
 
     <script>
-      document
-        .getElementById("indexForm")
-        .addEventListener("submit", async function (e) {
-          e.preventDefault();
+      const form = document.getElementById("loginForm");
+      const btn = document.getElementById("submitBtn");
+      const btnText = document.getElementById("btnText");
+      const loader = document.getElementById("btnLoader");
 
-          const email = document.getElementById("email").value;
-          const password = document.getElementById("password").value;
-          const btn = document.getElementById("indexBtn");
-          const errorDiv = document.getElementById("errorMsg");
-          const successDiv = document.getElementById("successMsg");
+      form.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
 
-          btn.disabled = true;
-          btn.textContent = "جاري التحقق من الجهاز...";
-          errorDiv.style.display = "none";
-          successDiv.style.display = "none";
+        btn.disabled = true; btnText.textContent = "جاري التحقق..."; loader.style.display = "block";
+        document.getElementById("errorAlert").style.display = "none";
+        document.getElementById("successAlert").style.display = "none";
 
-          try {
-            // الطريقة المعتمدة والصحيحة لتحميل مكتبة البصمة
-            const fpPromise =
-              import("https://openfpcdn.io/fingerprintjs/v4").then((fp) =>
-                fp.load(),
-              );
-            const fp = await fpPromise;
-            const result = await fp.get();
-            const visitorId = result.visitorId;
+        try {
+          const fpPromise = import("https://openfpcdn.io/fingerprintjs/v4").then((fp) => fp.load());
+          const fp = await fpPromise;
+          const result = await fp.get();
+          const visitorId = result.visitorId;
 
-            // إرسال البيانات للسيرفر المحلي (تأكد إن السيرفر شغال)
-            const response = await fetch("/api/login", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                email: email,
-                password: password,
-                device_token: visitorId,
-              }),
-            });
+          // تعديل الرابط ليتوافق مع الهوست المباشر
+          const response = await fetch("/api/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: email, password: password, device_token: visitorId }),
+          });
 
-            const data = await response.json();
+          const data = await response.json();
 
-            if (response.ok) {
-              successDiv.textContent = data.message;
-              successDiv.style.display = "block";
-
-              // السطر ده هو اللي هيحل المشكلة للأبد
-              localStorage.setItem("device_token", visitorId);
-
-              setTimeout(() => {
-                window.location.href = "game.html";
-              }, 1500);
-            } else {
-              errorDiv.textContent = data.detail;
-              errorDiv.style.display = "block";
-              btn.disabled = false;
-              btn.textContent = "دخول";
-            }
-          } catch (error) {
-            // السطر ده هيطبع المشكلة الحقيقية في الكونسول
-            console.error("الخطأ الحقيقي هو:", error);
-
-            errorDiv.textContent =
-              "حدث خطأ. اضغط F12 وافتح الـ Console لمعرفة السبب الحقيقي.";
-            errorDiv.style.display = "block";
-            btn.disabled = false;
-            btn.textContent = "دخول";
+          if (response.ok) {
+            document.getElementById("successAlert").textContent = data.message;
+            document.getElementById("successAlert").style.display = "block";
+            localStorage.setItem("device_token", visitorId);
+            setTimeout(() => { window.location.href = "/game"; }, 1500); // التوجيه لصفحة اللعبة
+          } else {
+            document.getElementById("errorAlert").textContent = data.detail;
+            document.getElementById("errorAlert").style.display = "block";
+            btn.disabled = false; btnText.textContent = "تسجيل الدخول"; loader.style.display = "none";
           }
-        });
+        } catch (error) {
+          document.getElementById("errorAlert").textContent = "خطأ في الاتصال بالخادم.";
+          document.getElementById("errorAlert").style.display = "block";
+          btn.disabled = false; btnText.textContent = "تسجيل الدخول"; loader.style.display = "none";
+        }
+      });
     </script>
   </body>
 </html>

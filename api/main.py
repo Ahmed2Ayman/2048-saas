@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from supabase import create_client, Client
 
 app = FastAPI(title="Lord Kasar System")
@@ -13,20 +13,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# بيانات قاعدة البيانات الخاصة بك
 SUPABASE_URL = "https://kzuwufstqmqevtphmjhb.supabase.co"
 SUPABASE_KEY = "sb_publishable_KKVwrHB_RLoQQv_Mg_ySFw_Sa_ZJix3"
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 class LoginRequest(BaseModel):
-    email: EmailStr
+    email: str  # تم التعديل هنا لنص عادي
     password: str
     device_token: str
 
 class VerifyRequest(BaseModel):
     device_token: str
-
-# ----------------- مسارات الـ API (الباك إند) -----------------
 
 @app.post("/api/login")
 def login(req: LoginRequest):

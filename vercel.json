@@ -5,7 +5,7 @@
     { "src": "game.html", "use": "@vercel/static" }
   ],
   "routes": [
-    { "src": "/api/(.*)", "dest": "/main.py" },
+    { "src": "/api/(.*)", "dest": "/api/main.py" },
     { "src": "/game", "dest": "/game.html" },
     { "src": "/", "dest": "/index.html" }
   ]

@@ -86,7 +86,7 @@
   </head>
   <body>
     <div class="container">
-      <h1>🎮 AI Solver</h1>
+      <h1>🎮 Lord Kasar </h1>
       <div class="status-bar" id="status-bar">أدخل أرقام اللوحة واضغط "استخراج أفضل حركة"</div>
       <div class="spinner" id="loading-spinner"></div>
       <div class="recommended-move" id="recommended-move">
@@ -202,7 +202,7 @@
       function setState(s) {
         state = s; ui.startBtn.disabled = false; ui.spinner.style.display = "none"; ui.recMove.classList.remove("show"); ui.tileSec.classList.remove("active"); ui.status.className = "status-bar";
         if (s === "INPUT") { ui.status.textContent = 'أدخل الأرقام واضغط "استخراج أفضل حركة"'; renderGrid(); }
-        else if (s === "CALC") { ui.startBtn.disabled = true; ui.spinner.style.display = "block"; ui.status.textContent = "🧠 الجراند ماستر بيفكر..."; ui.status.classList.add("thinking"); }
+        else if (s === "CALC") { ui.startBtn.disabled = true; ui.spinner.style.display = "block"; ui.status.textContent = "🧠  جارى التفكير..."; ui.status.classList.add("thinking"); }
         else if (s === "WAIT_POS") { ui.startBtn.disabled = true; ui.recMove.classList.add("show"); ui.status.textContent = "اضغط على المربع الفاضي الجديد"; ui.status.classList.add("waiting"); renderGrid(); }
         else if (s === "WAIT_VAL") { ui.startBtn.disabled = true; ui.recMove.classList.add("show"); ui.tileSec.classList.add("active"); ui.tileVal.value = ""; ui.tileVal.focus(); ui.status.textContent = "أدخل القيمة"; ui.status.classList.add("waiting"); }
       }
@@ -215,9 +215,10 @@
 
       aiWorker.onmessage = function(e) {
         let move = e.data;
-        if (!move) { ui.status.textContent = "💀 اللوحة اتقفلت!"; ui.status.className = "status-bar success"; return; }
-        ui.moveTxt.textContent = move === 'UP' ? 'فوق ⬆️' : move === 'DOWN' ? 'تحت ⬇️' : move === 'LEFT' ? 'شمال ⬅️' : 'يمين ➡️';
-        
+       if (move === 'UP') ui.moveTxt.textContent = 'فوق ⬆️';
+       else if (move === 'DOWN') ui.moveTxt.textContent = 'تحت ⬇️';
+       else if (move === 'LEFT') ui.moveTxt.textContent = 'شمال ⬅️';
+       else if (move === 'RIGHT') ui.moveTxt.textContent = 'يمين ➡️';
         function sim(bStr) {
           let b=JSON.parse(bStr); let m=line=>{let nz=line.filter(v=>v!==0),r=[],s=false;for(let i=0;i<nz.length;i++){if(s){s=false;continue;}if(i+1<nz.length&&nz[i]===nz[i+1]){let v=nz[i]+1;if(v!==11)r.push(v);s=true;}else r.push(nz[i]);}while(r.length<4)r.push(0);return r;};
           if(move==='LEFT')for(let i=0;i<4;i++)b[i]=m(b[i]); if(move==='RIGHT')for(let i=0;i<4;i++)b[i]=m([...b[i]].reverse()).reverse();

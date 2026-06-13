@@ -1,5 +1,3 @@
 fastapi
-uvicorn
+pydantic
 supabase
-pydantic[email]
-email-validator

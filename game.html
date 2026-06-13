@@ -217,8 +217,8 @@
         let move = e.data;
        if (move === 'UP') ui.moveTxt.textContent = 'فوق ⬆️';
        else if (move === 'DOWN') ui.moveTxt.textContent = 'تحت ⬇️';
-       else if (move === 'LEFT') ui.moveTxt.textContent = 'شمال ⬅️';
-       else if (move === 'RIGHT') ui.moveTxt.textContent = 'يمين ➡️';
+       else if (move === 'LEFT') ui.moveTxt.textContent = 'يمين ➡️';
+       else if (move === 'RIGHT') ui.moveTxt.textContent = 'شمال ⬅️';
         function sim(bStr) {
           let b=JSON.parse(bStr); let m=line=>{let nz=line.filter(v=>v!==0),r=[],s=false;for(let i=0;i<nz.length;i++){if(s){s=false;continue;}if(i+1<nz.length&&nz[i]===nz[i+1]){let v=nz[i]+1;if(v!==11)r.push(v);s=true;}else r.push(nz[i]);}while(r.length<4)r.push(0);return r;};
           if(move==='LEFT')for(let i=0;i<4;i++)b[i]=m(b[i]); if(move==='RIGHT')for(let i=0;i<4;i++)b[i]=m([...b[i]].reverse()).reverse();
